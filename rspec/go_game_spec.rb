@@ -12,7 +12,7 @@ class Game < Struct.new(:state, :plan)
   def initialize(plan)
     @state = false
     plan.each do |a|
-      puts a.inspect
+     # puts a.inspect
       @state = true if a.include?(0)
     end
 
@@ -21,8 +21,12 @@ class Game < Struct.new(:state, :plan)
   end
 
   def take_field(player, x, y)
-    @plan[x][y] = player
-    Game.new(@plan)
+    if @plan[x][y] == 0
+      @plan[x][y] = player
+      Game.new(@plan)
+    else
+      raise ArgumentError, "Field is already taken"
+    end
   end
 
   def is_full?
@@ -38,8 +42,19 @@ class Game < Struct.new(:state, :plan)
       return true if a.uniq.size == 1 && !a.include?(0)
     end
 
-    return false
+    a = []
+    3.times do |i|
+      a[i] = @plan[i][i]
+    end
+    return true if a.uniq.size == 1 && !a.include?(0)
 
+    a = []
+    3.times do |i|
+      a[i] = @plan.transpose[i][i]
+    end
+    return true if a.uniq.size == 1 && !a.include?(0)
+
+    return false
   end
 
   def is_over?
@@ -58,7 +73,7 @@ describe 'Game_over' do
 
   it 'game over when all fields are taken' do
     g = Game.new([[0, 0, 0], [0, 0, 0], [0, 0, 0]])
-    g = g.take_field(p, 1, 1)
+    # g = g.take_field(p, 1, 1)
 
     3.times do |i|
       3.times do |j|
@@ -82,6 +97,20 @@ describe 'Game_over' do
       g = g.take_field(:player1, j, 0)
     end
     expect(g.is_over?).to eq(true)
+  end
+
+  it 'game over when a diagonal is taken by one player' do
+    g = Game.new([[0, 0, 0], [0, 0, 0], [0, 0, 0]])
+    3.times do |j|
+      g = g.take_field(:player1, j, j)
+    end
+    expect(g.is_over?).to eq(true)
+  end
+
+  it 'a player can take a field if not already taken' do
+    g = Game.new([[0, 0, 0], [0, 0, 0], [0, 0, 0]])
+    g = g.take_field(:player1, 1, 1)
+    expect{g.take_field(:player1, 1, 1)}.to raise_error(ArgumentError)
   end
 
 end
