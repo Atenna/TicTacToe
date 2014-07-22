@@ -10,8 +10,13 @@ require 'rspec'
 class Game < Struct.new(:state, :plan)
 
   def initialize(plan)
-#    puts plan
-    @state = plan.include?(0)
+    @state = false
+    plan.each do |a|
+      puts a.inspect
+      @state = true if a.include?(0)
+    end
+
+    #@state = plan.include?(0)
     @plan = plan
   end
 
@@ -24,30 +29,59 @@ class Game < Struct.new(:state, :plan)
     !@state
   end
 
-  def is_over?
-    is_full?
+  def has_triple?
+    @plan.each do |a|
+      return true if a.uniq.size == 1 && !a.include?(0)
+    end
+
+    @plan.transpose.each do |a|
+      return true if a.uniq.size == 1 && !a.include?(0)
+    end
+
+    return false
+
   end
 
+  def is_over?
+    return true if is_full? || has_triple?
+    return false
+  end
 
 end
 
-
-
 describe 'Game_over' do
+  it 'game not over when one field is taken' do
+    g = Game.new([[0, 0, 0], [0, 0, 0], [0, 0, 0]])
+    g = g.take_field(:player1, 1, 1)
+    expect(g.is_over?).to eq(false)
+  end
+
   it 'game over when all fields are taken' do
     g = Game.new([[0, 0, 0], [0, 0, 0], [0, 0, 0]])
     g = g.take_field(p, 1, 1)
 
-    expect(g.is_over?).to eq(false)
     3.times do |i|
       3.times do |j|
-        puts i
-        puts j
         g = g.take_field(:player1, i, j)
-
       end
     end
-
     expect(g.is_over?).to eq(true)
   end
+
+  it 'game over when whole column is taken by one player' do
+    g = Game.new([[0, 0, 0], [0, 0, 0], [0, 0, 0]])
+    3.times do |j|
+      g = g.take_field(:player1, 0, j)
+    end
+    expect(g.is_over?).to eq(true)
+  end
+
+  it 'game over when whole row is taken by one player' do
+    g = Game.new([[0, 0, 0], [0, 0, 0], [0, 0, 0]])
+    3.times do |j|
+      g = g.take_field(:player1, j, 0)
+    end
+    expect(g.is_over?).to eq(true)
+  end
+
 end
