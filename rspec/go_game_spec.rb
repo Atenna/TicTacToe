@@ -24,6 +24,8 @@ class Game < Struct.new(:state, :plan)
     if @plan[x][y] == 0
       @plan[x][y] = player
       Game.new(@plan)
+    elsif is_over?
+      raise ArgumentError, "The game is over, you can't take turn"
     else
       raise ArgumentError, "Field is already taken"
     end
@@ -113,4 +115,17 @@ describe 'Game_over' do
     expect{g.take_field(:player1, 1, 1)}.to raise_error(ArgumentError)
   end
 
+  it 'players can take field until the game is over' do
+    1 == 1
+  end
+
+  it 'players can\'t take field when the game is over' do
+    g = Game.new([[0, 0, 0], [0, 0, 0], [0, 0, 0]])
+    3.times do |i|
+      3.times do |j|
+        g = g.take_field(:player1, i, j)
+      end
+    end
+    expect{g.take_field(:player1, 1, 1)}.to raise_error(ArgumentError)
+  end
 end
